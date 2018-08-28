@@ -5,38 +5,54 @@ import Person from './Person/Person';
 class App extends Component {
   state = {
     persons: [
-      { name: 'Max', age: 28 },
-      { name: 'Ken', age: 40 },
-      { name: 'Ryu', age: 42 }
+      { id: 'dasfa', name: 'Max', age: 28 },
+      { id: 'ardad', name: 'Auron', age: 32 },
+      { id: 'rrfad', name: 'Ryu', age: 42 }
     ],
     otherState: 'some other value',
     showPersons: false
   }
+   
+  nameInputSwitch = (event, id) => {
   
-  switchNameHandler = (newName) => {
-    //do not change state without using setState method or else react can't keep track of it
-    //in using setstate, it will only overwrite the part you decleared while leave other part of the state alone
+    //step1. finds the index of the person you are looking for in persons array through matching id 
+    const personIndex = this.state.persons.findIndex(p=> {
+      return p.id === id;
+    });
 
-    this.setState({
-      persons: [
-        { name: newName, age: 28 },
-        { name: 'ken', age: 40 },
-        { name: 'Ryu', age: 42 }
-      ]
-    })
+    //step2. assign the value of this.state.persons you are finding to person so you aren't changing the state directly
+    const person = { 
+      ...this.state.persons[personIndex]
+    }
+    /* 
+      alternative
+      const person = Object.assign({}, this.state.persons[personIndex])
+    */
+
+    //step3. change person's name to the event value
+    person.name = event.target.value;
+
+    /*step4. makeing a persons copy*/
+    const persons = [...this.state.persons];
+
+    /*step5 assign changed person to the person you need to change */
+    persons[personIndex] = person;
+
+    /*step 6 set state and merge the new persons change to orginal*/
+    this.setState({ persons: persons })
+    /*note all these work are to make sure that we are not altering the oringal state */
   }
-  
-  nameInputSwitch = (event) => {
-    //do not change state without using setState method or else react can't keep track of it
-    //in using setstate, it will only overwrite the part you decleared while leave other part of the state alone
 
-    this.setState({
-      persons: [
-        { name: 'Max', age: 28 },
-        { name:  event.target.value, age: 40 },
-        { name: 'Ryu', age: 42 }
-      ]
-    })
+  deletePersonHandler = (personIndex) => {
+    //prefer way to change data when updating or deleting
+    // set the original to a copy then update the copy then set to it to 
+    //to orginal in this.state to avoid altering the original state.
+    //always update the state in a immutable fashion to avoid react losing track of your state
+    //index is not a good way to keep track because if the list changes the index changes and react loses
+    //track of where the original index
+    const persons = [...this.state.persons]
+    persons.splice(personIndex, 1);
+    this.setState({ persons: persons })
   }
 
   togglePersonsHandler= () => {
@@ -44,36 +60,60 @@ class App extends Component {
   }
 
   render() {
+    //if you are going to use psuedo style, inline css, or meda qureies remember you'll need to import radium library
     const buttonStyle = {
-      backgroundColor: 'white',
+      backgroundColor: 'green',
+      color: 'white',
       font: 'inherit',
       border: '1px solid blue',
       padding: '8px',
-      cursor: 'pointer'
+      cursor: 'pointer',
     };
+  
     
     let person = null;
 
     if (this.state.showPersons) {
       person = (
           <div>
-            <Person 
-              name={this.state.persons[0].name} 
-              age={this.state.persons[0].age}
-              nameSwitch={this.switchNameHandler.bind(this, 'Maximium')}
-            />
-            <Person 
-              name={this.state.persons[1].name} 
-              age={this.state.persons[1].age}
-              nameInputSwitch={this.nameInputSwitch}
-              />
-            <Person name={this.state.persons[2].name} age={this.state.persons[2].age}/>
+            {this.state.persons.map((person, index) => {
+              return <Person name={person.name} 
+                             age={person.age}
+                             click = {()=> this.deletePersonHandler(index)}
+                             /* key property help react to keep track of the element rendered 
+                             if you don't do it react has to update the whole list instead just the one that needs to be updated
+                             usually you have ID which is unique from database and that's the best one to use as key */
+                             key={person.id} 
+                             //you have access to person.id because it's assigned as the key 
+                             changed={(event)=> this.nameInputSwitch(event, person.id)} />              
+            })}
           </div>
       )
+      //here is an example of changing background color dynamically using the if statement
+      buttonStyle.backgroundColor = 'red';
+      //using psuedo style css with radium note you need to use [] notation insted of . notation since :hover is in string when decleared 
     }
+     
+    /*
+    to set classes 
+    let classes = ['red', 'bold'].join(' '); */
+
+    //setting classes dynamially
+    let classes = [];
+    
+    if(this.state.persons.length <= 2) {
+      classes.push('red'); //classes = ['red']
+    }
+
+    if(this.state.persons.length <= 1) {
+      classes.push('bold'); //classes = ['red', 'bold']
+    }
+    
     return (
       <div className="App">
+        {/*here your assign classes to the p element note that the .join to set the classes*/}
         <h1>Hi, I am a react app</h1>
+        <p className={classes.join(' ')}>Testing styles</p>
         {/*using your decleared style on element example need to be wraped in {} */}
         <button style={buttonStyle} 
                 onClick={this.togglePersonsHandler}>toggle persons</button>
