@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import './App.css';
+import classes from './App.css';
 import Person from './Person/Person';
+import ErrorBoundary from './ErrorBoundary/ErrorBoundary';
 
 class App extends Component {
   state = {
@@ -61,23 +62,18 @@ class App extends Component {
 
   render() {
     //if you are going to use psuedo style, inline css, or meda qureies remember you'll need to import radium library
-    const buttonStyle = {
-      backgroundColor: 'green',
-      color: 'white',
-      font: 'inherit',
-      border: '1px solid blue',
-      padding: '8px',
-      cursor: 'pointer',
-    };
-  
     
     let person = null;
-
+    let btnClass = '';
     if (this.state.showPersons) {
       person = (
           <div>
             {this.state.persons.map((person, index) => {
-              return <Person name={person.name} 
+              //when using ErrorBoundary beware you'll have to put the key element inside the errorboundary component because 
+              //it's the outer element which we are mapping from. 
+              return (
+                        <Person 
+                             name={person.name} 
                              age={person.age}
                              click = {()=> this.deletePersonHandler(index)}
                              /* key property help react to keep track of the element rendered 
@@ -85,13 +81,14 @@ class App extends Component {
                              usually you have ID which is unique from database and that's the best one to use as key */
                              key={person.id} 
                              //you have access to person.id because it's assigned as the key 
-                             changed={(event)=> this.nameInputSwitch(event, person.id)} />              
+                             changed={(event)=> this.nameInputSwitch(event, person.id)} /> 
+              )
             })}
           </div>
       )
       //here is an example of changing background color dynamically using the if statement
-      buttonStyle.backgroundColor = 'red';
       //using psuedo style css with radium note you need to use [] notation insted of . notation since :hover is in string when decleared 
+      btnClass = classes.Red;
     }
      
     /*
@@ -99,23 +96,23 @@ class App extends Component {
     let classes = ['red', 'bold'].join(' '); */
 
     //setting classes dynamially
-    let classes = [];
-    
+    let assignedClasses = [];
+     
     if(this.state.persons.length <= 2) {
-      classes.push('red'); //classes = ['red']
+      assignedClasses.push(classes.red); //classes = ['red']
     }
 
     if(this.state.persons.length <= 1) {
-      classes.push('bold'); //classes = ['red', 'bold']
+      assignedClasses.push(classes.bold); //classes = ['red', 'bold']
     }
     
     return (
-      <div className="App">
+      <div className={classes.App}>
         {/*here your assign classes to the p element note that the .join to set the classes*/}
         <h1>Hi, I am a react app</h1>
-        <p className={classes.join(' ')}>Testing styles</p>
+        <p className={assignedClasses.join(' ')}>Testing styles</p>
         {/*using your decleared style on element example need to be wraped in {} */}
-        <button style={buttonStyle} 
+        <button className={btnClass}
                 onClick={this.togglePersonsHandler}>toggle persons</button>
         {person}
       </div>
